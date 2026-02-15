@@ -6,13 +6,14 @@ Vayumithra is a web-based dashboard designed to visualize real-time environmenta
 
 ## 🛠️ Tech Stack
 * **Hardware:** ESP32 
-* **Sensors:** [e.g., DHT11, MQ-135, BMP280]
+* **Sensors:**  MQ-135
 * **Frontend:** HTML5, CSS3, JavaScript
 * **Hosting:** GitHub Pages
 
 ## 🔌 Circuit Diagram
 > **Note:** Upload a photo of your circuit or a KiCad/Proteus screenshot to your repo, then link it here!
-![Circuit Diagram](link-to-your-image.png)
+!{<img width="999" height="491" alt="Vayumitra_circuit_diagram" src="https://github.com/user-attachments/assets/73b9a395-9c8d-4fe3-8de5-6c2ccf820e2e" />
+](Vayumitra_circuit_diagram.png)
 
 ## 🚀 Key Features
 * **Real-time Visualization:** Displays sensor data instantly.
