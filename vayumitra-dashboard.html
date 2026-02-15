@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VayuMitra - Air Quality Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27, #1a1f3a, #0f1729);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .header {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,212,255,0.2);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0,212,255,0.5);
+        }
+        .lang-btn {
+            background: rgba(0,212,255,0.1);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .lang-btn:hover {
+            background: rgba(0,212,255,0.2);
+            box-shadow: 0 0 15px rgba(0,212,255,0.4);
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            flex-wrap: wrap;
+        }
+        .nav-tab {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .nav-tab:hover {
+            background: rgba(0,212,255,0.1);
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+        }
+        .nav-tab.active {
+            background: rgba(0,212,255,0.2);
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0,212,255,0.3);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .gauge-container {
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .gauge {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 20px;
+        }
+        .gauge svg { transform: rotate(-90deg); }
+        .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 18; }
+        .gauge-fill { fill: none; stroke-width: 18; stroke-linecap: round; transition: all 0.8s ease; }
+        .gauge-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 30px currentColor;
+        }
+        .gauge-label {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #00d4ff;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 15px 0;
+            text-shadow: 0 0 15px currentColor;
+        }
+        .ai-trend {
+            background: rgba(0,212,255,0.1);
+            border-left: 4px solid #00d4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .ai-trend h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .health-tips {
+            background: rgba(0,255,100,0.1);
+            border-left: 4px solid #00ff64;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .health-tips h3 {
+            color: #00ff64;
+            margin-bottom: 10px;
+        }
+        .health-tips ul {
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+        .compliance-card {
+            text-align: center;
+            padding: 40px;
+        }
+        .compliance-status {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        .compliance-text {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 20px currentColor;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .data-table th, .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .data-table th {
+            background: rgba(0,212,255,0.1);
+            color: #00d4ff;
+            font-weight: 600;
+        }
+        .broadcast-btn {
+            background: linear-gradient(135deg, #ff0844, #ff6b6b);
+            border: none;
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 0 30px rgba(255,8,68,0.5);
+            transition: all 0.3s;
+        }
+        .broadcast-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255,8,68,0.7);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00d4ff;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,212,255,0.3);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0,212,255,0.3);
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            color: #0a0e27;
+            padding: 14px 32px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(0,212,255,0.5);
+            transition: all 0.3s;
+        }
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0,212,255,0.7);
+        }
+        .alert-success {
+            background: rgba(0,255,100,0.2);
+            border: 1px solid #00ff64;
+            color: #00ff64;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .nav-bar {
+                padding: 10px;
+            }
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            .gauge {
+                width: 200px;
+                height: 200px;
+            }
+            .gauge-text {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo"><i class="fas fa-wind"></i> VayuMitra</div>
+        <button class="lang-btn" onclick="toggleLanguage()">
+            <i class="fas fa-language"></i> <span id="langText">தமிழ்</span>
+        </button>
+    </div>
+
+    <div class="nav-bar">
+        <button class="nav-tab active" onclick="switchTab('public')">
+            <i class="fas fa-users"></i> <span data-en="Public" data-ta="பொது">Public</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('company')">
+            <i class="fas fa-industry"></i> <span data-en="Company Owners" data-ta="நிறுவன உரிமையாளர்கள்">Company Owners</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('municipal')">
+            <i class="fas fa-shield-alt"></i> <span data-en="Municipal Officer" data-ta="நகராட்சி அதிகாரி">Municipal Officer</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('report')">
+            <i class="fas fa-flag"></i> <span data-en="Report" data-ta="புகார் அளிக்கவும்">Report</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- PUBLIC SECTION -->
+        <div id="public" class="content-section active">
+            <div class="glass-card gauge-container">
+                <h2 data-en="Air Quality Index" data-ta="காற்று தர குறியீடு" style="color:#00d4ff;margin-bottom:20px;">Air Quality Index</h2>
+                <div class="gauge">
+                    <svg width="250" height="250">
+                        <circle class="gauge-bg" cx="125" cy="125" r="100"></circle>
+                        <circle id="gaugeFill" class="gauge-fill" cx="125" cy="125" r="100"></circle>
+                    </svg>
+                    <div id="gaugeValue" class="gauge-text">--</div>
+                    <div class="gauge-label">AQI</div>
+                </div>
+                <div id="statusBadge" class="status-badge">Loading...</div>
+                <div class="ai-trend">
+                    <h3><i class="fas fa-robot"></i> <span data-en="AI Trend Prediction" data-ta="AI போக்கு கணிப்பு">AI Trend Prediction</span></h3>
+                    <p id="aiTrend">--</p>
+                </div>
+            </div>
+            <div class="glass-card health-tips">
+                <h3><i class="fas fa-heartbeat"></i> <span data-en="Health Tips" data-ta="சுகாதார குறிப்புகள்">Health Tips</span></h3>
+                <ul id="healthTipsList"></ul>
+            </div>
+        </div>
+
+        <!-- COMPANY SECTION -->
+        <div id="company" class="content-section">
+            <div class="glass-card compliance-card">
+                <h2 data-en="Compliance Status" data-ta="இணக்க நிலை" style="color:#00d4ff;margin-bottom:30px;">Compliance Status</h2>
+                <div id="complianceIcon" class="compliance-status">--</div>
+                <div id="complianceText" class="compliance-text">--</div>
+                <p style="margin-top:20px;opacity:0.8;" data-en="Current AQI Level: " data-ta="தற்போதைய AQI நிலை: ">Current AQI Level: <span id="companyAQI">--</span></p>
+            </div>
+        </div>
+
+        <!-- MUNICIPAL SECTION -->
+        <div id="municipal" class="content-section">
+            <div class="glass-card">
+                <h2 data-en="Data Logs" data-ta="தரவு பதிவுகள்" style="color:#00d4ff;margin-bottom:20px;">Data Logs</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-en="Time" data-ta="நேரம்">Time</th>
+                            <th>AQI</th>
+                            <th data-en="Status" data-ta="நிலை">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataLogTable"></tbody>
+                </table>
+                <button class="broadcast-btn" onclick="broadcastAlert()">
+                    <i class="fas fa-bullhorn"></i> <span data-en="Broadcast Alert" data-ta="எச்சரிக்கை ஒளிபரப்பு">Broadcast Alert</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- REPORT SECTION -->
+        <div id="report" class="content-section">
+            <div class="glass-card">
+                <h2 data-en="Report Pollution" data-ta="மாசு புகார்" style="color:#00d4ff;margin-bottom:20px;">Report Pollution</h2>
+                <form id="reportForm" onsubmit="submitReport(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> <span data-en="Name" data-ta="பெயர்">Name</span></label>
+                        <input type="text" id="reportName" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> <span data-en="Location" data-ta="இடம்">Location</span></label>
+                        <input type="text" id="reportLocation" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-exclamation-triangle"></i> <span data-en="Complaint Type" data-ta="புகார் வகை">Complaint Type</span></label>
+                        <select id="complaintType" required>
+                            <option value="waste_burning" data-en="Illegal Waste Burning" data-ta="சட்டவிரோத கழிவு எரிப்பு">Illegal Waste Burning</option>
+                            <option value="industrial" data-en="Industrial Pollution" data-ta="தொழில்துறை மாசு">Industrial Pollution</option>
+                            <option value="vehicle" data-en="Vehicle Emission" data-ta="வாகன உமிழ்வு">Vehicle Emission</option>
+                            <option value="other" data-en="Other" data-ta="மற்றவை">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i> <span data-en="Submit" data-ta="சமர்ப்பிக்கவும்">Submit</span>
+                    </button>
+                </form>
+                <div id="reportAlert" style="display:none;" class="alert-success">
+                    <i class="fas fa-check-circle"></i> <span data-en="Report Filed Successfully!" data-ta="புகார் வெற்றிகரமாக பதிவு செய்யப்பட்டது!">Report Filed Successfully!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0dranHejXFsEVp43sSdhJitkhUc317LQ",
+            authDomain: "vayumitra-project.firebaseapp.com",
+            databaseURL: "https://vayumitra-project-default-rtdb.firebaseio.com",
+            projectId: "vayumitra-project",
+            storageBucket: "vayumitra-project.firebasestorage.app",
+            messagingSenderId: "221806708695",
+            appId: "1:221806708695:web:77358741aef2aacdf0ad92"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentLang = 'en';
+        let dataLogs = [];
+
+        const translations = {
+            Good: {en: 'Good', ta: 'நன்று'},
+            Moderate: {en: 'Moderate', ta: 'மிதமான'},
+            Unhealthy: {en: 'Unhealthy', ta: 'ஆரோக்கியமற்ற'},
+            Hazardous: {en: 'Hazardous', ta: 'ஆபத்தான'}
+        };
+
+        function getAQIColor(aqi) {
+            if (aqi <= 50) return '#00ff64';
+            if (aqi <= 100) return '#ffff00';
+            if (aqi <= 150) return '#ff7e00';
+            if (aqi <= 200) return '#ff0844';
+            return '#8b0000';
+        }
+
+        function getAQIStatus(aqi) {
+            if (aqi <= 50) return 'Good';
+            if (aqi <= 100) return 'Moderate';
+            if (aqi <= 150) return 'Unhealthy';
+            return 'Hazardous';
+        }
+
+        function getHealthTips(aqi) {
+            if (aqi <= 50) return {
+                en: ['Perfect for outdoor activities', 'Air quality is excellent'],
+                ta: ['வெளிப்புற நடவடிக்கைகளுக்கு சிறந்தது', 'காற்று தரம் சிறப்பானது']
+            };
+            if (aqi <= 100) return {
+                en: ['Acceptable air quality', 'Sensitive groups should be cautious'],
+                ta: ['ஏற்றுக்கொள்ளக்கூடிய காற்று தரம்', 'உணர்திறன் குழுக்கள் எச்சரிக்கையாக இருக்க வேண்டும்']
+            };
+            if (aqi <= 150) return {
+                en: ['Avoid prolonged outdoor activities', 'Wear masks when outside'],
+                ta: ['நீண்ட வெளிப்புற நடவடிக்கைகளைத் தவிர்க்கவும்', 'வெளியே செல்லும்போது முகமூடி அணியவும்']
+            };
+            return {
+                en: ['Stay indoors', 'Emergency health alert', 'Seek medical attention if needed'],
+                ta: ['உட்புறத்தில் இருங்கள்', 'அவசர சுகாதார எச்சரிக்கை', 'தேவைப்பட்டால் மருத்துவ உதவி பெறவும்']
+            };
+        }
+
+        function updateDashboard(data) {
+            const aqi = data.AQI || 0;
+            const status = data.Status || getAQIStatus(aqi);
+            const aiTrend = data.AI_Trend || 'Analyzing air quality patterns...';
+            const color = getAQIColor(aqi);
+
+            // Update gauge
+            document.getElementById('gaugeValue').textContent = aqi;
+            document.getElementById('gaugeValue').style.color = color;
+            const circumference = 2 * Math.PI * 100;
+            const percentage = Math.min((aqi / 500) * 100, 100);
+            const offset = circumference - (percentage / 100) * circumference;
+            const gaugeFill = document.getElementById('gaugeFill');
+            gaugeFill.style.stroke = color;
+            gaugeFill.style.strokeDasharray = circumference;
+            gaugeFill.style.strokeDashoffset = offset;
+
+            // Update status
+            const translatedStatus = translations[status] ? translations[status][currentLang] : status;
+            document.getElementById('statusBadge').textContent = translatedStatus;
+            document.getElementById('statusBadge').style.color = color;
+            document.getElementById('statusBadge').style.background = `${color}22`;
+
+            // Update AI trend
+            document.getElementById('aiTrend').textContent = aiTrend;
+
+            // Update health tips
+            const tips = getHealthTips(aqi);
+            document.getElementById('healthTipsList').innerHTML = tips[currentLang].map(tip => `<li>${tip}</li>`).join('');
+
+            // Update company compliance
+            document.getElementById('companyAQI').textContent = aqi;
+            if (aqi < 100) {
+                document.getElementById('complianceIcon').innerHTML = '✓';
+                document.getElementById('complianceIcon').style.color = '#00ff64';
+                document.getElementById('complianceText').innerHTML = currentLang === 'en' ? 'COMPLIANT' : 'இணக்கமானது';
+                document.getElementById('complianceText').style.color = '#00ff64';
+            } else {
+                document.getElementById('complianceIcon').innerHTML = '✗';
+                document.getElementById('complianceIcon').style.color = '#ff0844';
+                document.getElementById('complianceText').innerHTML = currentLang === 'en' ? 'NON-COMPLIANT' : 'இணக்கமற்றது';
+                document.getElementById('complianceText').style.color = '#ff0844';
+            }
+
+            // Update data logs
+            dataLogs.unshift({time: new Date().toLocaleTimeString(), aqi: aqi, status: translatedStatus});
+            if (dataLogs.length > 10) dataLogs.pop();
+            document.getElementById('dataLogTable').innerHTML = dataLogs.map(log => 
+                `<tr><td>${log.time}</td><td>${log.aqi}</td><td>${log.status}</td></tr>`
+            ).join('');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            event.target.closest('.nav-tab').classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'ta' : 'en';
+            document.getElementById('langText').textContent = currentLang === 'en' ? 'தமிழ்' : 'English';
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.textContent = el.getAttribute('data-' + currentLang);
+            });
+            // Re-render with current data
+            db.ref('SPB_Colony').once('value', snapshot => updateDashboard(snapshot.val() || {}));
+        }
+
+        function submitReport(e) {
+            e.preventDefault();
+            const report = {
+                name: document.getElementById('reportName').value,
+                location: document.getElementById('reportLocation').value,
+                type: document.getElementById('complaintType').value,
+                timestamp: new Date().toISOString()
+            };
+            db.ref('reports').push(report);
+            document.getElementById('reportAlert').style.display = 'block';
+            document.getElementById('reportForm').reset();
+            setTimeout(() => document.getElementById('reportAlert').style.display = 'none', 3000);
+        }
+
+        function broadcastAlert() {
+            alert(currentLang === 'en' ? 'Alert broadcasted to all citizens!' : 'அனைத்து குடிமக்களுக்கும் எச்சரிக்கை ஒளிபரப்பப்பட்டது!');
+        }
+
+        // Listen to Firebase
+        db.ref('SPB_Colony').on('value', (snapshot) => {
+            updateDashboard(snapshot.val() || {});
+        });
+    </script>
+</body>
+</html>
